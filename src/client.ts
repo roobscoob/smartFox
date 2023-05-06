@@ -29,7 +29,7 @@ export enum ExtensionMessageType {
   STR,
 }
 
-type ExtensionMessage = 
+export type ExtensionMessage = 
   | { roomId: number, command: string, kind: ExtensionMessageType.JSON, dataObject: JsonValue }
   | { roomId: number, command: string, kind: ExtensionMessageType.XML, dataObject: unknown }
   | { roomId: number, command: string, kind: ExtensionMessageType.STR, dataObject: string[] }
