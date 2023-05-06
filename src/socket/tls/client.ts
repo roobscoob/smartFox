@@ -110,7 +110,7 @@ export class TlsClient extends ClientSocket {
   }
 
   private sendRaw(string: string) {
-    console.log("SEND", JSON.stringify(string));
+    // console.log("SEND", JSON.stringify(string));
 
     return new Promise<void>((res, rej) => {
       this.socket.write(string + "\x00", "utf-8", (e) => {
@@ -125,7 +125,7 @@ export class TlsClient extends ClientSocket {
   private async handleChunk(chunk: Buffer) {
     const string = chunk.toString("utf-8")
 
-    console.log("Chunk", string);
+    // console.log("Chunk", string);
 
     const kind = string[0];
 

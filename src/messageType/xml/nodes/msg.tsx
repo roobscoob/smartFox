@@ -66,6 +66,7 @@ export abstract class S2CMsg extends ManagedElement {
       case "apiOK": return S2CApiVersionOkMsg.new(childAttributes, childChildren);
       case "apiKO": return S2CApiVersionKoMsg.new(childAttributes, childChildren);
       case "rndK": return S2CRandomKeyMsg.new(childAttributes, childChildren);
+      case "rmList": return S2CRoomListMsg.new(childAttributes, childChildren);
     }
 
     throw new Error("Unknown action: " + action);
@@ -80,4 +81,5 @@ export abstract class S2CMsg extends ManagedElement {
 
 import { S2CApiVersionOkMsg } from "./msgNodes/s2c/S2CApiVersionOkMsg";
 import { S2CApiVersionKoMsg } from "./msgNodes/s2c/S2CApiVersionKoMsg";
-import { S2CRandomKeyMsg } from "./msgNodes/s2c/S2CRandomKeyMsg";
+import { S2CRandomKeyMsg } from "./msgNodes/s2c/S2CRandomKeyMsg";import { S2CRoomListMsg } from "./msgNodes/s2c/S2CRoomListMsg";
+
