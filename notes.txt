@@ -1,0 +1,161 @@
+/**
+ * - kinds of C -> S children:
+ * 
+ * AddBuddy                      System:"addB"         | <n>{name:string}</n>
+ * AutoJoin                      System:"autoJoin"     |
+ * ClearBuddyList                System:"clearB"       |
+ * CreateRoom                    System:"createRoom"   | <room tmp={isTemporary:1 | 0} gam={isGame:1 | 0} spec={maxSpectators:int} exit="1" jas="joinAsSpectator:1 | 0">
+ *                                                     |   <name><![CDATA[{name:string}]]></name>
+ *                                                     |   <pwd><![CDATA[{name:string}]]></pwd>
+ *                                                     |   <max>{maxUsers:int}</max>
+ *                                                     |   {reportUserCount:1 | 0 | null === null ? <></> : <uCnt>{reportUserCount:1 | 0}</uCnt>}
+ *                                                     |   {extension:{ name:string, script:string } | null === null ? <></> : <xt n='{extension.name:string}' s='{extension.script:string}' />}
+ *                                                     |   <vars>
+ *                                                     |     <var name={vars[index:int].name:string} t={vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null) | } pr={vars[index:int].priv} pe={vars[index:int].persistent}><![CDATA[{vars[index:int].value}]]></var>
+ *                                                     |   </vars>
+ *                                                     | </room>
+ * GetBuddyRoom                  System:"roomB"        | <b id={buddy.id:number} />
+ * GetRoomList                   System:"getRmList"    |
+ * GetRandomKey                  System:"rndK"         |
+ * JoinRoom                      System:"joinRoom"     | <room id={newRoomId:int} pwd={password:string} spec={isSpectator:boolean} leave={leaveCurrentRoom:0 | 1} old={roomToLeave:int} />
+ * LeaveRoom                     System:"leaveRoom"    | <rm id={roomId:int} />
+ * LoadBuddyList                 System:"loadB"        |
+ * Login                         System:"login"        | <login z={zone:string}><nick><![CDATA[{name: string}]]!><pword><![CDATA[{password: string}]]></pword></login>
+ * Logout                        System:"logout"       |
+ * RemoveBuddy                   System:"remB"         | <n>{buddyName:string}</n>
+ * RoundTripBench                System:"roundTrip"    |
+ * SendBuddyPermissionResponse   System:"bPrm"         | <n res={allowBuddy:boolean ? "g" : "r"}>{targetBuddy:string}</n>
+ * SendPublicMessage             System:"pubMsg"       | <txt><![CDATA[{encodeMessage(message:string)}]]></txt>
+ * SendPrivateMessage            System:"prvMsg"       | <txt rcp={recipientId:int}><![CDATA[{encodeMessage(message:string)}]]></txt>
+ * SendModeratorMessage          System:"modMsg"       | <txt t={type:"u"(ser) | "r"(oom) | "z"(one)} id={id:int | null ?? -1}><![CDATA[{encodeMessage(message:string)}]]></txt>
+ * SendActionScriptObject        System:"asObj"        | <!CDATA[ObjectSerializer(obj:*)]]>
+ * SendActionScriptObjectToGroup System:"asObjG"       | <!CDATA[ObjectSerializer(obj:* & { _$$_: userList:string[].join(",") })]]>
+ * SetBuddyBlockStatus           System:"setB"         | <n x={status:1 | 0}>{buddyName:string}</n>
+ * SetBuddyVariables             System:"setBvars"     | <vars>
+ *                                                     |   <var n={vars[i:int].name:string}><![CDATA[{vars[i:int].value:string}]]></var>
+ *                                                     | </vars>
+ * SetRoomVariables              System:"setRvars"     | <vars so={setOwnership:boolean ? null : "0"}>
+ *                                                     |   <var n={vars[index:int].name:string} t={vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)} pr={vars[index:int].priv} pe={vars[index:int].persistent}><![CDATA[{vars[index:int].value}]]></var>
+ *                                                     | </vars>
+ * SetUserVariables              System:"setUvars"     | <vars>
+ *                                                     |   <var n={vars[index:int].name:string} t={vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)}><![CDATA[{vars[index:int].value}]]></var>
+ *                                                     | </vars>
+ * SwitchSpectator               System:"swSpec"       |
+ * SwitchPlayer                  System:"swPl"         |
+ * CheckVersion                  System:"verChk"       | <ver v={apiVersion:int = 165} />
+ *   
+ * - kinds of S -> C children:  
+ *   
+ * LoginSuccess                  System:"logOK"        | <login n={nick:string} id={id:int} mod={isModerator:1 | 0} />
+ * LoginFailure                  System:"logKO"        | <login e={error:string} />
+ * Logout                        System:"logout"       |
+ * ApiVersionOk                  System:"apiOK"        |
+ * ApiVersionTooOld              System:"apiKO"        |
+ * RoomList                      System:"rmList"       | <rmList>
+ *                                                     |   <rm id={rooms[index:int].id:int} priv={rooms[index:int].ispPrivate:1 | 0} temp={rooms[index:int].isTemporary:1 | 0} game={rooms[index:int].isGame: 1 | 0} ucnt={rooms[index:int].userCount:int} lmb={rooms[index:int].isLimbo ? 1 : null} scnt={rooms[index:int].isGame ? rooms[index:int].getSpectatorCount : null} maxu={rooms[index:int].getMaxUsers:int} maxs={rooms[index:int].getMaxSpectator:int}>
+ *                                                     |     <n><![CDATA[{rooms[index:int].name:string}]]></n>
+ *                                                     |     [OPTIONAL]
+ *                                                     |       <vars>
+ *                                                     |         <var n={rooms[index:int].vars[index:int].name:string} t={rooms[index:int].vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)}><![CDATA[{rooms[index:int].vars[index:int].value}]]></var>
+ *                                                     |       </vars>
+ *                                                     |     [/OPTIONAL]
+ *                                                     |   </rm>
+ *                                                     | </rmList>
+ * RoomJoinSuccess               System:"joinOK"       | <pid id={playerIndex:int} />
+ *                                                     | <vars>
+ *                                                     |   <var n={vars[index:int].name:string} t={vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)}><![CDATA[{vars[index:int].value}]]></var>
+ *                                                     | </vars>
+ *                                                     | <uLs r={roomId}>
+ *                                                     |   [IF NOT room.isLimbo]
+ *                                                     |     <u
+ *                                                     |       i={room.users[index:int].id:int} 
+ *                                                     |       m={room.users[index:int].isModerator:1 | 0}
+ *                                                     |       [IF room.isGame]
+ *                                                     |         s={room.users[index:int].playerIndex === -1 ? 1 : 0}
+ *                                                     |         p={room.users[index:int].playerIndex}
+ *                                                     |       [/IF]
+ *                                                     |     ><n><![CDATA[{rooom.users[index:int].name:string}]]></n>
+ *                                                     |       <vars>
+ *                                                     |         <var n={rooom.users[index:int].vars[index:int].name:string} t={rooom.users[index:int].vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)}><![CDATA[{rooom.users[index:int].vars[index:int].value}]]></var>
+ *                                                     |       </vars>
+ *                                                     |     </u>
+ *                                                     |   [/IF]
+ *                                                     | </uLs>
+ * UserEnteredRoomBroadcast      System:"uER"          | <u
+ *                                                     |   i={room.users[index:int].id:int} 
+ *                                                     |   m={room.users[index:int].isModerator:1 | 0}
+ *                                                     |   [IF room.isGame]
+ *                                                     |     s={room.users[index:int].playerIndex === -1 ? 1 : 0}
+ *                                                     |     p={room.users[index:int].playerIndex}
+ *                                                     |   [/IF]
+ *                                                     | ><n><![CDATA[{rooom.users[index:int].name:string}]]></n>
+ *                                                     |   <vars>
+ *                                                     |     <var n={rooom.users[index:int].vars[index:int].name:string} t={rooom.users[index:int].vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)}><![CDATA[{rooom.users[index:int].vars[index:int].value}]]></var>
+ *                                                     |   </vars>
+ *                                                     | </u>
+ * JoinRoomFailure               System:"joinKO"       | <error msg={error:string} />
+ * UserExitedRoomBroadcast       System:"userGone"     | <user id={userId:int} />
+ * PublishMessageBroadcast       System:"pubMsg"       | <user id={userId:int} />
+ *                                                     | <txt><![CDATA[{message:string}]]></txt>
+ * PrivateMessageSendFailure     System:"prvMsg"       | <user id="-1" />
+ *                                                     | <txt><![CDATA[{unknown:string}]]></txt>
+ * PrivateMessageBroadcast       System:"prvMsg"       | <user id={senderUserId:int} />
+ *                                                     | <txt><![CDATA[{message:string}]]></txt>
+ * AdminMessage                  System:"dmnMsg"       | <user id={senderUserId:int} />
+ *                                                     | <txt><![CDATA[{message:string}]]></txt>
+ * ModMessage                    System:"modMsg"       | <user id={senderUserId:int} />
+ *                                                     | <txt><![CDATA[{message:string}]]></txt>
+ * ActionScriptObject            System:"dataObj"      | <user id={senderUserId:int} />
+ *                                                     | <dataObj><![CDATA[{ObjectSerializer(obj:*)}]]></dataObj>
+ * UserVariablesUpdateBroadcast  System:"uVarsUpdate"  | <user id={userId:int} />
+ *                                                     | <var>
+ *                                                     |   <var n={vars[index:int].name:string} t={vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)}><![CDATA[{vars[index:int].value}]]></var>
+ *                                                     | </vars>
+ * RoomVariablesUpdateBroadcast  System:"rVarsUpdate"  | <vars so={setOwnership:boolean ? null : "0"}>
+ *                                                     |   <var n={vars[index:int].name:string} t={vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)} pr={vars[index:int].priv} pe={vars[index:int].persistent}><![CDATA[{vars[index:int].value}]]></var>
+ *                                                     | </vars>
+ * RoomAdded                     System:"roomAdd"      | <rm id={room.id:int} priv={room.isPrivate:1 | 0} temp={room.isTemp:1 | 0} game={room.isGame: 1 | 0} max={room.maxUsers} spec={room.maxSpectators} limbo={room.isLimbo}>
+ *                                                     |   <name><![CDATA[{room.name:string}]]></name>
+ *                                                     |   <vars so={setOwnership:boolean ? null : "0"}>
+ *                                                     |     <var n={vars[index:int].name:string} t={vars[index:int].typeof:b(oolean) | n(umber) | s(tring) | x(null)} pr={vars[index:int].priv} pe={vars[index:int].persistent}><![CDATA[{vars[index:int].value}]]></var>
+ *                                                     |   </vars>
+ *                                                     | </rm>
+ * CreateRoomFailure             System:"createRmKO"   | <room e={error:string} />
+ * LeaveRoom                     System:"leaveRoom"    | <rm id={roomId:int} />
+ * RoundTripResponse             System:"roundTripRes" |
+ * SwitchSpectatorResponse       System:"swSpec"       | <pid id={playerIndex:int} />
+ * SwitchSpectatorBroadcast      System:"swSpec"       | <pid id={playerIndex:int} u={userId:int} />
+ * SwitchPlayerResponse          System:"swPl"         | <pid id={success ? -1 : oldId} />
+ * SwitchPlayerBroadcast         System:"swPl"         | <pid id="-1" u={userId:int} />
+ * BuddyListFailure              System:"bList"|"bUpd" | <err>{error:string}</err>
+ * BuddyList                     System:"bList"        | <bList>
+ *                                                     |   <b s={buddies[index:int].isActive:1 | 0} i={buddies[index:int].id:int} x={buddies[index:int].isIgnored:1 | 0}>
+ *                                                     |     <n><![CDATA[{buddies[index:int].name:string}]]></n>
+ *                                                     |     <vs>
+ *                                                     |       <v n={buddies[index:int].variables[index:int].name}><![CDATA[{buddies[index:int].variables[index:int].value}]]></v>
+ *                                                     |     </vs>
+ *                                                     |   </b>
+ *                                                     | </bList>
+ * BuddyAdd                      System:"bAdd"         | <b s={buddy.isActive:1 | 0} i={buddy.id:int}>
+ *                                                     |   <n><![CDATA[{buddy.name:string}]]></n>
+ *                                                     |   <vs>
+ *                                                     |     <v n={buddy.variables[index:int].name}><![CDATA[{buddy.variables[index:int].value}]]></v>
+ *                                                     |   </vs>
+ *                                                     | </b>
+ * AddBuddyPermission            System:"bPrm"         | <n><![CDATA[{requestorName:string}]]></n>
+ *                                                     | [OPTIONAL]
+ *                                                     |   <txt><![CDATA[{extraMessage:string}]]></txt>
+ *                                                     | [/OPTIONAL]
+ * BuddyRoom                     System:"roomB"        | <br r={roomIds.join(",")} \>
+ * RandomKey                     System:"rndK"         | <k>{key:string}</k>
+ * RemoveBuddy                   System:"remB"         | <n><![CDATA[{buddyName:string}]]></n>
+ * BuddyListUpdate               System:"bUpd"         | <b s={buddy.isActive:1 | 0} i={buddy.id:int}>
+ *                                                     |   <n><![CDATA[{buddy.name:string}]]></n>
+ *                                                     |   // PARTIAL LIST!
+ *                                                     |   <vs>
+ *                                                     |     <v n={buddy.variables[index:int].name}><![CDATA[{buddy.variables[index:int].value}]]></v>
+ *                                                     |   </vs>
+ *                                                     | </b>
+ * BuddyListCleared              System:"bClr"         |
+ * UserCountChange               System:"uCount"       | ADDS ATTRIBUTES TO BODY ELEMENT "u" = UserCount; "s" = SpectatorCount
+ */
