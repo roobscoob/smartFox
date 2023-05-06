@@ -29,10 +29,13 @@ export enum ExtensionMessageType {
   STR,
 }
 
+type ExtensionMessage = 
+  | { roomId: number, command: string, kind: ExtensionMessageType.JSON, dataObject: JsonValue }
+  | { roomId: number, command: string, kind: ExtensionMessageType.XML, dataObject: unknown }
+  | { roomId: number, command: string, kind: ExtensionMessageType.STR, dataObject: string[] }
+
 interface ClientEvents {
-  extensionMessage: { roomId: number, command: string, kind: ExtensionMessageType.JSON, dataObject: JsonValue }
-                  | { roomId: number, command: string, kind: ExtensionMessageType.XML,  dataObject: unknown   }
-                  | { roomId: number, command: string, kind: ExtensionMessageType.STR,  dataObject: string[]  },
+  extensionMessage: ExtensionMessage,
 }
 
 export class Client extends Emittery<ClientEvents> {
